@@ -61,6 +61,8 @@ skills:
 experience:
   - company: "Example Tech Inc."
     role: "Full-Stack Engineer"
+    domain: "Full-Stack Web Development"
+    scope_boundary: "Strictly web application and REST API engineering. Do not conflate with unrelated domains or projects."
     location: "Remote"
     start_date: "2023-01"
     end_date: "Present"
@@ -78,6 +80,8 @@ experience:
 
   - company: "Innovate Labs"
     role: "Frontend Developer"
+    domain: "Frontend UI Engineering"
+    scope_boundary: "Strictly client-side React UI components and WCAG accessibility."
     location: "Manila, Philippines"
     start_date: "2021-06"
     end_date: "2022-12"

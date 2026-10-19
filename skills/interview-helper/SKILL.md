@@ -13,9 +13,9 @@ This skill prepares candidates for technical screenings, behavioral rounds, and 
 ## Operating Modes
 
 ### Mode 1: Interactive Anecdote Extraction & Prep Brief
-1. **Grounded Story Retrieval**:
-   - Inspect `data/candidate-profile.yaml` and `data/star-stories.md`.
-   - Match target job competencies (e.g., technical debt, production outage, ambiguous specs) against existing stories.
+1. **Grounded Story Retrieval (With Strict Entity Isolation)**:
+   - Inspect `data/candidate-profile.yaml` and `data/star-stories.md`, respecting each story's `Domain` and `Scope Boundary`.
+   - Match target job competencies (e.g., technical debt, production outage, ambiguous specs) against existing stories without merging actions, tools, or outcomes from two different projects or employers into one story.
 2. **Interactive Clarification**:
    - If a competency lacks a rich anecdote, ask the user targeted questions directly in chat:
      - *"What is a real time at [Company] where an architectural choice had unexpected trade-offs?"*
@@ -24,10 +24,10 @@ This skill prepares candidates for technical screenings, behavioral rounds, and 
 3. **Formulate Authentic STAR Talking Points**:
    - **Situation**: Context in 1-2 sharp sentences.
    - **Task**: The explicit challenge and ownership stake.
-   - **Action**: The specific technical, algorithmic, and architectural actions taken.
+   - **Action**: The specific technical, algorithmic, and architectural actions taken within that single project/role.
    - **Result**: Quantifiable outcomes, metrics, or engineering retrospectives.
 4. **Persist High-Value Anecdotes**:
-   - With candidate confirmation, append newly surfaced anecdotes to `data/star-stories.md`.
+   - With candidate confirmation, append newly surfaced anecdotes to `data/star-stories.md` including explicit `Domain` and `Scope Boundary` fields.
 
 ### Mode 2: Mock Interview Simulation
 1. **Ingest Target Context**:
@@ -43,7 +43,7 @@ This skill prepares candidates for technical screenings, behavioral rounds, and 
      - **Result**: Measurable impact, user feedback, or learning cited?
 4. **Targeted Refinement**:
    - Highlight what worked well.
-   - Point out missing dimensions and provide a refined variation using verified facts.
+   - Point out missing dimensions and provide a refined variation using verified facts from that specific story only.
 
 ---
 
@@ -55,6 +55,6 @@ This skill prepares candidates for technical screenings, behavioral rounds, and 
 ---
 
 ## Strict Constraints
-- Never fabricate anecdotes or script buzzwords not reflecting the candidate's voice.
+- Never fabricate anecdotes, merge unrelated projects/employers into composite stories, or script buzzwords not reflecting the candidate's voice.
 - Strictly zero emojis across all interview briefs, talking points, and questions.
 

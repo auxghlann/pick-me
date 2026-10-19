@@ -28,17 +28,17 @@ This skill crafts brief, highly targeted cover letters (strictly 3-4 paragraphs,
 
 ---
 
-## Structure: 3-to-4 Paragraph Compressed Narrative
+## Structure: 3-to-4 Paragraph Compressed Narrative (With Strict Entity Isolation)
 Keep the entire letter strictly between **200 and 280 words** across maximum 4 paragraphs:
 1. **Paragraph 1: The Direct Hook (2-3 sentences)**
-   - Name the role, the specific company/product reason for applying, and connect directly to a problem they are actively solving.
+   - Introduce the candidate based on factual information from `candidate-profile.yaml` (education/honors, location), the target role and company, and the core domain value the candidate brings.
    - Banned openings: "I am writing to express my enthusiasm...", "I was thrilled to see...", "I believe I am the ideal candidate...".
-2. **Paragraph 2: Core Engineering & Project Match (3-4 sentences)**
-   - Highlight 1-2 verified achievements from `candidate-profile.yaml` or `star-stories.md` mapping to JD technical requirements. Include concrete metrics without hype.
-3. **Paragraph 3 (Optional or merged into P2): Technical Alignment (2-3 sentences)**
-   - Highlight practical engineering discipline (e.g., clean architecture, testing rigor, automated pipelines) demonstrated in past projects.
-4. **Paragraph 4: Forward-Looking Close (1-2 sentences)**
-   - Concise invitation for a conversation. Zero pleading, zero generic flattery.
+2. **Paragraph 2: Core Engineering Match & Explicit Domain Transition (3-4 sentences)**
+   - **Primary Technical Match First**: State the candidate's technical foundation and projects that directly match the target JD's domain (e.g., SQL, Python, dbt, and ELT pipeline projects for a Data Engineering role).
+   - **Strict Entity Separation (No Chimera Synthesis)**: Never fuse an unrelated internship or work experience with personal projects into a single blended claim. If referencing an internship or role from a different domain (such as Software QA / System Integration Testing at NOAH Business Application), introduce it in a **separate sentence with an explicit transition** and describe it strictly within its own `scope_boundary`:
+     > *Golden Pattern*: "My technical foundation centers on modern data engineering and pipeline development using SQL, Python, and dbt. Furthermore, from my internship at NOAH Business Application, I am also well-versed in quality assurance and UAT, testing enterprise software modules in System Integration Testing (SIT) environments and validating system components against strict business rules to prevent quality issues prior to release."
+3. **Paragraph 3: Closing Statement & Forward-Looking Close (2-3 sentences)**
+   - Concise closing statement connecting relevant certifications and engineering discipline to the company's priorities, followed by a clear invitation for a conversation. Zero pleading, zero generic flattery.
 
 ---
 
@@ -48,14 +48,15 @@ Keep the entire letter strictly between **200 and 280 words** across maximum 4 p
 - Read target job description, company mission, and product domain.
 - Check `data/applications.csv` for `<app_id>`.
 
-### 2. Draft Verbatim Content
+### 2. Draft Verbatim Content (Enforcing Entity Boundaries)
 - Draft the 3-4 paragraph text using the candidate's authentic voice and verified facts.
+- Verify every sentence against each entry's `domain` and `scope_boundary` in `data/candidate-profile.yaml` and `data/star-stories.md` to ensure zero cross-entity vocabulary contamination.
 - Check word count: ensure it is strictly under 280 words.
 - Run anti-hype check: eliminate words like `spearhead`, `leverage`, `seamless`, `cutting-edge`, `robust`, `harness`, `testament to`.
 
 ### 3. Mandatory Pre-Generation Plan Review Gate (Hard Stop)
 Before touching any `.typ` file:
-- Author an implementation plan artifact containing the complete 1:1 drafted cover letter text verbatim.
+- Author an implementation plan artifact containing the complete 1:1 drafted cover letter text verbatim, along with an **Entity Attribution Audit** listing each referenced project/experience and its `domain` to confirm zero cross-work conflation.
 - Set `RequestFeedback: true` in `write_to_file`.
 - **Halt execution** and await explicit user approval. Do not populate templates or compile until approved.
 
@@ -79,7 +80,7 @@ Remind the user to record this application in `data/applications.csv`.
 ---
 
 ## Strict Constraints
-- Anti-Hallucination: Zero fabrication of claims, tools, employers, or metrics.
+- Anti-Hallucination & Entity Isolation: Zero fabrication of claims, tools, employers, or metrics, and zero blending of unrelated experiences/projects into composite claims.
 - Length: Strictly 3 to 4 paragraphs maximum, under 280 words total.
 - Strict zero emojis across all code, Typst files, and messages.
 
