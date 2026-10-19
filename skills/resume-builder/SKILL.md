@@ -36,20 +36,21 @@ All generated files follow this standardized structure:
   - Core domain challenges and primary qualifications.
 - Check `data/applications.csv` to identify or reserve `<app_id>`.
 
-### 2. Select & Prioritize Verified Content
-- Cross-reference JD keywords against `data/candidate-profile.yaml` and `data/star-stories.md`:
-  - **Summary**: 2-3 sentence overview tailored to the target role.
+### 2. Select & Prioritize Verified Content (With Strict Entity Isolation)
+- Cross-reference JD keywords against `data/candidate-profile.yaml` and `data/star-stories.md` while strictly respecting each entry's `domain` and `scope_boundary`:
+  - **Entity Isolation Rule (No Chimera Synthesis)**: Treat each `experience[]` entry and each `projects[]` entry as a sealed container. Never borrow keywords, tools, or concepts from a project (e.g., Data Engineering `dbt` or transactional data integrity) and graft them onto an unrelated work experience or internship (e.g., Software QA / SIT application module testing).
+  - **Summary**: 2-3 sentence overview tailored to the target role. Never fuse unrelated work experience and personal projects into a single blended clause (e.g., do not combine `dbt` data pipeline tasks with `SIT` internship testing as if they were the same activity). If mentioning both, separate them into distinct clauses or focus the summary strictly on the target domain.
   - **Technical Skills**: Order technologies so JD-requested tools appear first (never add unverified skills).
-  - **Work Experience**: Select 3-5 highlights per role matching JD priorities, following the Google XYZ formula ("Accomplished [X] as measured by [Y], by doing [Z]").
+  - **Work Experience**: Select 3-5 highlights per role matching JD priorities, following the Google XYZ formula ("Accomplished [X] as measured by [Y], by doing [Z]"). Mirroring JD terminology is strictly limited to synonyms **within that role's own `domain` and `scope_boundary`**.
   - **Projects**: Select 1-2 most relevant projects demonstrating JD-adjacent technical depth.
   - **Skill Gaps**: Note any required technologies missing from the candidate's profile honestly.
 
 ### 3. Mandatory Pre-Generation Plan Review Gate (Hard Stop)
 Before creating or modifying any `.typ` file, author an implementation plan artifact containing the complete 1:1 drafted content:
-- Verbatim Professional Summary.
+- Verbatim Professional Summary, with an inline `[Source: <entity_name> | Domain: <domain>]` audit tag for each claim verifying zero cross-entity conflation.
 - Verbatim ordered Technical Skills.
-- Verbatim Work Experience entries, titles, dates, and bullet points.
-- Verbatim Project entries, links, and bullet points.
+- Verbatim Work Experience entries, titles, dates, and bullet points, with `[Source: experience/<company> | Domain: <domain>]` confirmation.
+- Verbatim Project entries, links, and bullet points, with `[Source: project/<name> | Domain: <domain>]` confirmation.
 - Identified skill gaps and rationale for selected highlights.
 - Set `RequestFeedback: true` in `write_to_file`.
 - **Halt execution** and await explicit user approval. Do not touch `.typ` files or run compilers until approved.
@@ -74,7 +75,7 @@ Prompt the user to check if the application was submitted, offering to invoke `a
 ---
 
 ## Strict Constraints
-- Anti-Hallucination: Zero fabrication of metrics, skills, employers, or dates.
+- Anti-Hallucination & Entity Isolation: Zero fabrication of metrics, skills, employers, or dates, and zero cross-pollination of vocabulary between unrelated `experience[]` and `projects[]` entries.
 - Clean Layout: Strict single-column, parser-friendly Typst formatting.
 - Strict zero emojis across all code, Typst files, and messages.
 

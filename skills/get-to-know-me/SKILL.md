@@ -32,7 +32,7 @@ Best when the candidate already has an existing resume (PDF, Word, Markdown, or 
      - Education (Degrees, Institutions, Graduation Years).
      - Categorized Skills (Languages, Frameworks, Tools, Methodologies).
 3. **Populate Candidate Profile**:
-   - Write the extracted information cleanly into `data/candidate-profile.yaml`, including `preferences.seniority_level` (e.g., `Entry-Level / Junior`, `Mid-Level`, `Senior`, `Staff / Lead`) and `preferences.years_of_experience`.
+   - Write the extracted information cleanly into `data/candidate-profile.yaml`, including `preferences.seniority_level` (e.g., `Entry-Level / Junior`, `Mid-Level`, `Senior`, `Staff / Lead`), `preferences.years_of_experience`, and explicit `domain` / `scope_boundary` fields on each experience entry so unrelated roles are never conflated during tailoring.
 4. **Transition to Targeted Enrichment**:
    - Proceed to the Targeted Enrichment & STAR Mining section below.
 
@@ -57,13 +57,13 @@ Run the interview across 4 bite-sized conversational phases (one phase at a time
 
 #### Phase 3: Career History & Concrete Impact
 For each recent company or key role:
-- Company name, role title, and timeframe.
-- What were the 2-3 most critical systems or features you built?
+- Company name, role title, timeframe, and primary `domain` (e.g., Software QA/SIT, Full-Stack Web, Data Engineering).
+- What were the 2-3 most critical systems or tasks you worked on, and what is the strict `scope_boundary` of that role (to prevent mixing it with unrelated personal projects)?
 - What measurable impact resulted from your work (e.g., users served, latency reduced, revenue generated, tests automated)?
 
 #### Phase 4: Standout Projects
 - Do you have 1-2 personal, client, or open-source projects that highlight your architectural strengths?
-- What problem did they solve, and what technologies did you choose?
+- What `domain` do they belong to, what problem did they solve, and what technologies did you choose?
 
 ---
 

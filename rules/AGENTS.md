@@ -39,8 +39,11 @@ Generative, coaching, and pipeline tracking workflows run directly in the active
 
 ## Domain Standards
 
-1. **Binding Source of Truth**: All generative outputs (`resume-builder`, `cover-letter-builder`, `interview-helper`) are strictly anchored to `data/candidate-profile.yaml` and `data/star-stories.md`. Fabrication of employers, degrees, skills, or unverified metrics is strictly prohibited.
-2. **Mandatory Review Plan Gate**: Before creating or modifying any `.typ` source file, author an implementation plan artifact containing the complete 1:1 drafted content verbatim and request user feedback (`RequestFeedback: true`).
+1. **Binding Source of Truth & Strict Entity Isolation**:
+   - All generative outputs (`resume-builder`, `cover-letter-builder`, `interview-helper`) are strictly anchored to `data/candidate-profile.yaml` and `data/star-stories.md`. Fabrication of employers, degrees, skills, or unverified metrics is strictly prohibited.
+   - **Zero Cross-Entity Conflation (No Chimera Synthesis)**: Every entry in `experience[]`, `projects[]`, and `star-stories.md` is a sealed factual container governed by its `domain` and `scope_boundary`. Never combine two unrelated experiences or projects into a single blended claim, and never borrow vocabulary from one entry (e.g., Data Engineering `dbt` or transactional data integrity) to reframe an unrelated entry (e.g., Software QA / SIT application module testing).
+   - **Explicit Transition Between Unrelated Domains**: When referencing both primary domain projects and an internship/role from a different domain in a summary or cover letter, separate them into distinct sentences with explicit source attribution (e.g., *"Furthermore, from my internship at [Company]..."*).
+2. **Mandatory Review Plan Gate**: Before creating or modifying any `.typ` source file, author an implementation plan artifact containing the complete 1:1 drafted content verbatim—with inline `[Source: <entity_name> | Domain: <domain>]` verification tags confirming zero cross-entity conflation—and request user feedback (`RequestFeedback: true`).
 3. **Universal CSV Tracking**: All pipeline events must be recorded directly in `data/applications.csv`.
 4. **Clean Typst Formatting**: All resume outputs must follow single-column, parser-friendly Typst standards.
 5. **Strict Zero Emojis**: Strictly zero emojis across all code, documents, Typst files, templates, and messages.

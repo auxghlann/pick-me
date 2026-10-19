@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.0] - 2026-10-19
+
+### Added
+- **MIT License**: Added official MIT license to root repository.
+- **Entity & Domain Isolation Memory Management**:
+  - Added `domain` and `scope_boundary` fields to `candidate-profile.template.yaml` and candidate profiles to prevent cross-entity conflation.
+  - Implemented constitutional **Anti-Chimera & Strict Entity Isolation Laws** in `rules/AGENTS.md`.
+  - Enforced inline `[Source: <entity_name> | Domain: <domain>]` verification tags in resume-builder and cover-letter-builder review plans (`RequestFeedback: true`).
+  - Added strict domain boundary checks to `skills/interview-helper/SKILL.md` and `skills/get-to-know-me/SKILL.md`.
+
+### Changed
+- Refined cover letter and resume summary generation to explicitly decouple unrelated technical domains (e.g. Data Engineering projects vs. Software QA/SIT internships) using cleanly separated narrative transitions.
+
 ## [v1.0.0] - 2026-10-16
 
 ### Initial Stable Release: Pick Me - Autonomous Career & Job Application Suite
