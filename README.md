@@ -1,98 +1,111 @@
-# Pick Me!: Job Application Assistant for Google Antigravity
+# Pick Me.
 
-A specialized autonomous career acceleration suite for Google Antigravity that eliminates AI hallucinations, tailors ATS resumes and authentic cover letters, conducts human-in-the-loop interview coaching, and saves all outputs directly to your personal Documents folder.
+An Antigravity plugin for job application asisstance that compiles ATS-compliant Typst resumes, writes targeted cover letters, crawls job postings,  prepares STAR interview answers, and tracks application pipelines in CSV.
 
----
+All generated documents are compiled to PDF and stored in `~/Documents/pick-me-output/` for clean organization.
 
-## What is Inside?
+## Architecture
 
-### Architecture: Subagent + Modular Skills
-
-This suite employs a lean architectural split to maximize speed and token efficiency without context loss:
-
-#### Dedicated Subagent (Isolated Sandbox)
-- **`job-posting-crawler`**: Market scout discovering and live-verifying job postings across regional portals and ATS boards (Greenhouse, Lever, Ashby, JobStreet, Kalibrr). Evaluates postings via a 100-point rubric prioritizing Years of Experience over skills with heavy penalties and exclusions for experience deficits. Isolated in a subagent to keep transient web search and DOM scraping tokens out of your main session.
-
-#### Inline Modular Skills (Zero Subagent Overhead & In-Memory Continuity)
-- **`resume-builder`**: Tailors single-column Typst resumes for target job postings. Submits a 1:1 drafted plan for user review before generating code, compiling directly to ATS-friendly PDF.
-- **`cover-letter-builder`**: Drafts authentic, targeted 3-4 paragraph cover letters with direct problem-solving hooks, free of generic AI buzzwords.
-- **`interview-helper`**: Interactive coach that asks targeted questions to surface your real anecdotes and construct personalized STAR answers.
-- **`application-tracker`**: CSV-based pipeline manager computing follow-up dates and pipeline velocity in `data/applications.csv`.
-- **`well-being-coach`**: Grounded companion for managing job hunt fatigue, pacing (2-3 tailored apps/day), and ghosting.
-- **`get-to-know-me`**: Candidate onboarding skill that extracts authentic career facts and STAR stories from an existing resume or guided chat.
-- **`typst-pdf`**: Generic Typst markup assembly and compilation utility.
-
----
+| Component | Type | Responsibility |
+| :--- | :--- | :--- |
+| **`job-posting-crawler`** | Subagent | Discovers and live-verifies job postings across ATS boards (Greenhouse, Lever, Ashby) and job portals with a 3-day freshness filter and a 100-point experience-first rubric. |
+| **`resume-builder`** | Inline Skill | Tailors single-column Typst resumes to job descriptions. Enforces entity boundaries between past roles, requires a pre-generation plan approval, and compiles to PDF. |
+| **`cover-letter-builder`** | Inline Skill | Drafts 3-paragraph (140–220 words) cover letters grounded in verified profile facts. Decouples unrelated technical domains with clean narrative transitions. |
+| **`interview-helper`** | Inline Skill | Mines candidate stories from profile data into STAR talking points and conducts single-question mock interview simulations. |
+| **`application-tracker`** | Inline Skill | Manages application lifecycles and follow-up schedules in RFC 4180 CSV (`data/applications.csv`). |
+| **`well-being-coach`** | Inline Skill | Guides sustainable pacing (2–3 tailored applications per day) and de-personalizes automated rejections. |
+| **`get-to-know-me`** | Inline Skill | Onboards candidates via existing resume import or a 4-phase conversational interview to populate profile facts and STAR stories. |
+| **`typst-pdf`** | Inline Skill | Compiles `.typ` source files into PDFs via PowerShell. |
 
 ## Prerequisites
 
-- [Google Antigravity CLI](https://github.com/google-deepmind) installed and configured on your system.
-- PowerShell 7+ or Windows PowerShell.
-- [Typst](https://typst.app/) installed on your PATH (required for PDF compilation):
+- [Google Antigravity](https://github.com/google-deepmind)
+- PowerShell 7+ or Windows PowerShell
+- [Typst CLI](https://typst.app/):
   ```powershell
   winget install --id Typst.Typst
   ```
 
----
-
 ## Installation
 
-### Option A: Install via Antigravity CLI (Recommended)
-
-Install the plugin directly from GitHub into your Antigravity environment:
+Install via the Antigravity CLI:
 
 ```powershell
 agy plugin install https://github.com/auxghlann/pick-me
 ```
 
-Antigravity automatically discovers and activates all skills and agents.
+Or install from a local clone:
 
-### Option B: Local / Clone Installation
+```powershell
+git clone https://github.com/auxghlann/pick-me.git
+cd pick-me
+agy plugin install .
+```
 
-Clone this repository and point Antigravity to it:
+## Quickstart
 
-1. Clone the repository:
-   ```powershell
-   git clone https://github.com/auxghlann/pick-me.git
-   cd pick-me
-   ```
-2. Install as a local plugin:
-   ```powershell
-   agy plugin install .
-   ```
+### 1. Initialize Candidate Profile
+Create candidate data files from templates:
 
----
+```powershell
+.\scripts\init-profile.ps1
+```
 
-## Quickstart Guide
+This creates:
+- `data/candidate-profile.yaml`: Master work history, skills, target preferences, and explicit `domain` / `scope_boundary` attributes.
+- `data/star-stories.md`: Behavioral interview anecdotes structured into Situation, Task, Action, and Result.
+- `data/applications.csv`: RFC 4180 pipeline tracker.
 
-### 1. Set Up Your Candidate Profile (Source of Truth)
-
-All generative actions are strictly grounded in your verified facts to prevent hallucinations.
-
-1. Initialize your profile from the included templates:
-   ```powershell
-   .\scripts\init-profile.ps1
-   ```
-   This creates:
-   - `data/candidate-profile.yaml`: Your master work history, skills, and projects.
-   - `data/star-stories.md`: Your verified behavioral interview anecdotes.
-   - `data/applications.csv`: Your pipeline tracking sheet.
-2. Or use the onboarding skill: tell Antigravity, *"Run get-to-know-me to import my resume"*, and provide your current resume to populate your profile automatically.
-
-> **Privacy Note**: Candidate files in `data/` are git-ignored. All generated resumes, cover letters, and crawl reports are saved directly to your local user directory (`~/Documents/pick-me-output/`), keeping the codebase clean and your documents easily accessible in Windows Explorer.
+Alternatively, run `/get-to-know-me` in Antigravity to import an existing resume (`.pdf`, `.md`, `.txt`) or complete guided onboarding.
 
 ### 2. Tailor a Resume
-
 Prompt Antigravity with a target job description:
-> "Tailor my resume for this role: [paste JD]"
 
-The `resume-builder` skill will match your profile against the JD, present a 1:1 drafted plan for your review and approval, and compile an ATS-compliant PDF into `~/Documents/pick-me-output/applications/<app_id>_<company>/resume_<company>.pdf`.
+```text
+Tailor my resume for this role: [paste JD]
+```
+
+`resume-builder` will draft a plan artifact with inline source attribution tags (`[Source: ... | Domain: ...]`), request your approval, and compile the resume to `~/Documents/pick-me-output/applications/<app_id>_<company>/resume_<company>.pdf`.
 
 ### 3. Draft a Cover Letter
-
 Prompt Antigravity:
-> "Write a cover letter for this job: [paste JD]"
 
-The `cover-letter-builder` skill drafts a direct, 4-paragraph letter and compiles it to `~/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf`.
+```text
+Draft a cover letter for this job: [paste JD]
+```
 
----
+`cover-letter-builder` drafts a 3-paragraph letter (140–220 words) with an entity attribution audit, awaits approval, and compiles to `~/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf`.
+
+### 4. Search & Verify Opportunities
+Launch the crawler subagent:
+
+```text
+Find active Junior Data Engineer jobs in Manila or Remote posted in the last 3 days
+```
+
+`job-posting-crawler` verifies URL accessibility and score-ranks matching postings.
+
+### 5. Track Applications
+Update or inspect application records:
+
+```text
+Update APP-003 status to Screening
+```
+
+`application-tracker` computes weekly velocity and alerts when follow-up dates (+7 to +14 days) arrive.
+
+## Data Privacy & Output Layout
+
+All candidate files in `data/` (`candidate-profile.yaml`, `star-stories.md`, `applications.csv`) are git-ignored. Generated outputs are written to your local documents directory:
+
+```text
+~/Documents/pick-me-output/
+├── applications/
+│   └── <app_id>_<company>/
+│       ├── resume_<company>.typ
+│       ├── resume_<company>.pdf
+│       ├── cover_letter_<company>.typ
+│       └── cover_letter_<company>.pdf
+└── crawls/
+    └── crawl_<timestamp>.pdf
+```

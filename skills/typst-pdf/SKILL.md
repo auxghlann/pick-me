@@ -3,89 +3,48 @@ name: typst-pdf
 description: Generic markup assembly and PDF compilation utility using the Typst CLI. Handles document geometry, full justification, typography standards, and error-free PDF compilation for any arbitrary document. Zero domain or business logic.
 ---
 
-# Typst PDF Compilation & Assembly Skill (`typst-pdf`)
+# Typst PDF Compilation
 
-## Purpose
-A pure, reusable utility skill for creating, assembling, and compiling documents into PDFs using the [Typst](https://typst.app/) engine. Contains **zero business logic** (no resume, cover letter, or job tracking rules). Any subagent requiring PDF output can invoke this skill to validate syntax and execute compilation.
+Compiles `.typ` source files into PDFs using the Typst engine.
 
----
+## Tooling & Compilation
 
-## Tooling & Prerequisites
+### Verifying CLI
+Verify installation via `typst --version`. If missing, request user confirmation before installing:
+```powershell
+winget install -e --id Typst.Typst
+```
 
-Typst is a fast, lightweight modern CLI markup compiler.
-
-### Verifying or Installing Typst CLI
-- To verify installation: `typst --version`
-- If missing, prompt user confirmation before installing via Windows Package Manager:
-  ```powershell
-  winget install -e --id Typst.Typst
-  ```
-
----
-
-## Executing Compilation
-
-To compile any `.typ` source file to PDF, use the bundled compilation script:
-
+### Compiling Documents
+Execute the bundled compilation script:
 ```powershell
 powershell -ExecutionPolicy Bypass -File "skills/typst-pdf/scripts/compile.ps1" -TypstFile "<path/to/source.typ>" -OutputFile "<path/to/target.pdf>"
 ```
+- If `-OutputFile` is omitted, the script writes `<source_basename>.pdf` in the source directory.
+- The script automatically creates missing target directories.
+- Always verify the generated PDF exists and has non-zero bytes.
 
-- If `-OutputFile` is omitted, the script automatically writes `<source_basename>.pdf` alongside the source file.
-- The script automatically ensures target directories exist before writing.
+## Typst Markup Standards & Syntax Traps
 
----
+Adhere to these rules when authoring or editing `.typ` source:
 
-## Core Typst Markup Standards & Syntax Pitfalls
-
-When authoring or modifying `.typ` markup for compilation, adhere strictly to these rules:
-
-### 1. Document Geometry & Setup
-```typst
-#set page(
-  paper: "a4",
-  margin: (x: 1.8cm, top: 1.8cm, bottom: 1.8cm),
-)
-```
-
-### 2. Typography & Fonts
-Always use universally available fonts on Windows/Linux with fallbacks to avoid warnings or font substitution errors:
-```typst
-#set text(
-  font: ("Segoe UI", "Arial"),
-  size: 10pt,
-  fill: rgb("#111827"),
-  lang: "en",
-)
-```
-
-### 3. Paragraph Justification & Leading
-To prevent ragged right margins and ensure crisp, aligned documents:
-```typst
-#set par(justify: true, leading: 0.65em)
-```
-
-### 4. Escaping Links & Emails (Crucial)
-In Typst markup mode, `@identifier` is parsed as a bibliography or label reference. Using raw `@` in unescaped text (e.g. `john@example.com`) causes label resolution crashes. Always wrap links and emails explicitly:
-- For emails: `#link("mailto:name@example.com")[name@example.com]` or `#text("name@example.com")`
-- For URLs: `#link("https://example.com")[example.com]`
-
-### 5. Structure & Layout Primitives
-- Spacing: `#v(8pt)` for vertical space, `#h(6pt)` for horizontal space.
-- Dividers: `#line(length: 100%, stroke: 0.5pt + rgb("#e5e7eb"))`
-- Two-column or key-value layouts: Use `#grid(columns: (1fr, auto), ...)`
-- Section headers:
-  ```typst
-  #text(size: 12pt, weight: "bold", fill: rgb("#1f2937"))[Section Title]
-  #v(2pt)
-  #line(length: 100%, stroke: 0.5pt + rgb("#d1d5db"))
-  #v(4pt)
-  ```
-
----
-
-## Checklist Before Invoking Compiler
-1. Target directories exist or are handled by `compile.ps1`.
-2. All raw emails and URLs are wrapped in `#link(...)` or `#text(...)`.
-3. `#set par(justify: true)` is declared if block justification is required.
-4. Output file follows `.pdf` extension.
+1. **Document Geometry**:
+   ```typst
+   #set page(paper: "a4", margin: (x: 1.8cm, top: 1.8cm, bottom: 1.8cm))
+   ```
+2. **Typography**: Always declare universal fallback fonts to prevent substitution errors:
+   ```typst
+   #set text(font: ("Segoe UI", "Arial"), size: 10pt, fill: rgb("#111827"), lang: "en")
+   ```
+3. **Paragraph Justification**:
+   ```typst
+   #set par(justify: true, leading: 0.65em)
+   ```
+4. **Escaping Emails & URLs (Crucial)**:
+   In Typst markup, `@` denotes a label or bibliography reference. Unescaped `@` (e.g. `user@example.com`) causes label resolution failures. Always wrap:
+   - Emails: `#link("mailto:name@example.com")[name@example.com]` or `#text("name@example.com")`
+   - URLs: `#link("https://example.com")[example.com]`
+5. **Layout Primitives**:
+   - Vertical/horizontal spacing: `#v(8pt)`, `#h(6pt)`
+   - Dividers: `#line(length: 100%, stroke: 0.5pt + rgb("#d1d5db"))`
+   - Key-value or multi-column grids: `#grid(columns: (1fr, auto), ...)`

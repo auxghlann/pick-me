@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.0] - 2026-10-20
+
+### Changed
+- **Skill Instructions Streamlining**: Refactored all 7 inline skills (`application-tracker`, `cover-letter-builder`, `get-to-know-me`, `interview-helper`, `resume-builder`, `typst-pdf`, `well-being-coach`) using `concise-skill-builder` principles, achieving a 46.6% line and token reduction while preserving all functional constraints, entity isolation rules, and review gates.
+- **Documentation Overhaul**: Rewrote `README.md` following `saw-readme` guidelines to provide concise, hype-free developer documentation with accurate component architectures and runnable setup commands.
+- **Manifest Cleanup**: Removed legacy root `plugin.json` to establish `.antigravity-plugin/plugin.json` as the single source of truth for plugin metadata.
+
 ## [v1.1.0] - 2026-10-19
 
 ### Added
