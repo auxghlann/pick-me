@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pick Me Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="header-left">
+      <span class="brand">Pick Me Studio</span>
+      <span class="sep"></span>
+      <div class="file-picker">
+        <select id="file-select" aria-label="Select file">
+          <option value="">Loading files...</option>
+        </select>
+        <label class="btn ghost btn-upload" id="btn-upload" for="file-upload" title="Upload local .typ file" tabindex="0" role="button">
+          <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span class="btn-text">Upload</span>
+          <input type="file" id="file-upload" accept=".typ,text/plain,*/*" class="sr-only">
+        </label>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn-icon-only" id="btn-theme" title="Toggle color scheme" aria-label="Toggle color scheme">
+        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+
+      <div class="seg" role="group" aria-label="Editor view mode">
+        <button id="mode-form" aria-pressed="true">Form</button>
+        <button id="mode-raw" aria-pressed="false">Typst</button>
+        <button id="mode-preview" aria-pressed="false" class="mobile-only-btn">Preview</button>
+      </div>
+
+      <span class="status" id="status-pill">
+        <span class="dot"></span>
+        <span id="status-text">All changes saved</span>
+      </span>
+
+      <div class="menu" id="export-menu">
+        <button class="btn" id="btn-export-toggle" aria-haspopup="true" aria-expanded="false">
+          Export
+          <svg class="svg-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="menu-list" role="menu">
+          <button id="btn-download-pdf" role="menuitem">
+            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </button>
+          <button id="btn-download-typ" role="menuitem">
+            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Download .typ
+          </button>
+        </div>
+      </div>
+
+      <button class="btn primary" id="btn-save">
+        <span class="btn-save-full">Save &amp; compile</span>
+        <span class="btn-save-short">Save</span>
+        <kbd>Ctrl S</kbd>
+      </button>
+    </div>
+  </header>
+  </header>
+
+  <main id="main-workspace">
+    <section class="editor" id="editor-container" aria-label="Editor pane">
+      <div id="error-banner"></div>
+      <div class="editor-inner" id="visual-container"></div>
+      <div class="raw-view" id="raw-container">
+        <textarea id="raw-textarea" spellcheck="false" aria-label="Raw Typst code"></textarea>
+      </div>
+    </section>
+
+    <div class="resizer" id="panel-resizer" role="separator" aria-orientation="vertical" tabindex="0" title="Drag to resize panels" aria-label="Resize panels">
+      <div class="resizer-handle"></div>
+    </div>
+
+    <section class="preview" aria-label="Live preview pane">
+      <div class="stage">
+        <iframe id="pdf-frame" title="Compiled PDF preview"></iframe>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="studio.js"></script>
+</body>
+</html>

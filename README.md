@@ -76,7 +76,16 @@ Draft a cover letter for this job: [paste JD]
 
 `cover-letter-builder` drafts a 3-paragraph letter (140–220 words) with an entity attribution audit, awaits approval, and compiles to `~/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf`.
 
-### 4. Search & Verify Opportunities
+### 4. Edit Visually in Pick Me Studio (Zero Tokens)
+To make quick wording or layout edits to any generated resume or cover letter without spending LLM tokens, launch the local split-screen editor:
+
+```powershell
+.\scripts\studio.ps1
+```
+
+This opens `http://127.0.0.1:8765/` in your browser where you can select any `.typ` file from `~/Documents/pick-me-output/`, upload a `.typ` file from disk, edit fields in the **Visual Form** (or switch to **Raw `.typ`**), and press `Ctrl+S` to recompile and export the PDF via Typst.
+
+### 5. Search & Verify Opportunities
 Launch the crawler subagent:
 
 ```text
@@ -85,7 +94,7 @@ Find active Junior Data Engineer jobs in Manila or Remote posted in the last 3 d
 
 `job-posting-crawler` verifies URL accessibility and score-ranks matching postings.
 
-### 5. Track Applications
+### 6. Track Applications
 Update or inspect application records:
 
 ```text
