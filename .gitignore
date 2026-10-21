@@ -20,5 +20,5 @@ Desktop.ini
 .idea/
 
 # Internal assistant guidelines
-rules/AGENT.md
-AGENT.md
+rules/agents.md
+AGENTS.md

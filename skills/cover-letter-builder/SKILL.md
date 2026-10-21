@@ -38,7 +38,10 @@ Once approved:
    powershell -ExecutionPolicy Bypass -File "skills/typst-pdf/scripts/compile.ps1" -TypstFile "$HOME/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.typ" -OutputFile "$HOME/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf"
    ```
 4. Verify the output PDF exists and has non-zero bytes.
-5. Prompt the user to log the application in `data/applications.csv`.
+5. Provide post-generation guidance to the user:
+   - **For minor edits** (e.g., adjusting a sentence, swapping words, fixing recipient details): Prompt the user to run `powershell -ExecutionPolicy Bypass -File .\scripts\studio.ps1` to launch Pick Me Studio for zero-token visual editing, live preview, and instant PDF compilation.
+   - **For major changes** (e.g., tailoring for a different job description, changing core narrative themes, major rewrites): Prompt the user to ask the assistant directly to draft a new implementation plan with proper entity isolation.
+   - Prompt the user to log or update the application record in `data/applications.csv`.
 
 ## Constraints
 - **Entity Isolation & Anti-Hallucination**: Zero fabrication of claims, tools, or metrics. Never combine unrelated experiences or transfer vocabulary across domains.

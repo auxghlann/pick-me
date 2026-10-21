@@ -48,3 +48,8 @@ Generative, coaching, and pipeline tracking workflows run directly in the active
 4. **Clean Typst Formatting**: All resume outputs must follow single-column, parser-friendly Typst standards.
 5. **Strict Zero Emojis**: Strictly zero emojis across all code, documents, Typst files, templates, and messages.
 6. **Unified Application Packages**: When tailoring both a resume and cover letter for a target role, reserve the next `App_ID` in `data/applications.csv` first, draft both in a single plan artifact, and compile both PDFs upon approval.
+7. **Post-Generation Editing Guidance**:
+   - Upon completing any document generation (`resume-builder`, `cover-letter-builder`), explicitly remind the user:
+     - For **minor edits** (e.g., word tweaks, phrasing adjustments, fixing typos, single-line updates): Run `powershell -ExecutionPolicy Bypass -File .\scripts\studio.ps1` to launch Pick Me Studio for zero-token visual editing, live preview, and instant PDF compilation.
+     - For **major changes** (e.g., tailoring for a different job description, restructuring sections, adding new roles or STAR stories): Prompt the assistant directly to draft an updated plan with verified entity isolation and factual grounding.
+
