@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.0] - 2026-10-22
+
+### Added
+- **Pick Me Studio**: Zero-token local visual web editor and live PDF recompiler (`scripts/studio.ps1` + `templates/studio/`).
+  - Lightweight PowerShell HTTP server powered by `System.Net.Sockets.TcpListener` for unprivileged local execution without administrative rights or external dependencies.
+  - Modular frontend architecture (`index.html`, `studio.css`, `studio.js`) with bidirectional form card parsing, raw Typst editor, and synchronized Typst PDF preview.
+  - Draggable split-pane resizer with bounds clamping and pointer event shielding.
+  - High-contrast dark and light mode theme toggle.
+  - Robust drag-and-drop and file upload with dynamic dropdown updating.
+  - Responsive single-row header and viewport layouts supporting mobile and desktop screens without control collisions.
+
+### Changed
+- **Builder Post-Generation Guidance**: Updated `resume-builder` and `cover-letter-builder` skills to guide applicants toward Pick Me Studio for minor wording adjustments while reserving LLM interaction for major tailoring revisions.
+- **Documentation & Spec Context**: Documented the Studio workflow in `README.md` and established `.spec/plans/` for living task contracts.
+
 ## [v1.2.0] - 2026-10-20
 
 ### Changed
