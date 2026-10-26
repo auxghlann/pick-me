@@ -19,26 +19,45 @@ const state = {
 };
 
 // DOM Elements
-const elFileSelect = document.getElementById("file-select");
-const elBtnUpload = document.getElementById("btn-upload");
-const elFileUpload = document.getElementById("file-upload");
-const elModeForm = document.getElementById("mode-form");
-const elModeRaw = document.getElementById("mode-raw");
-const elModePreview = document.getElementById("mode-preview");
-const elStatusPill = document.getElementById("status-pill");
-const elStatusText = document.getElementById("status-text");
-const elExportMenu = document.getElementById("export-menu");
-const elBtnExportToggle = document.getElementById("btn-export-toggle");
-const elBtnDownloadPdf = document.getElementById("btn-download-pdf");
-const elBtnDownloadTyp = document.getElementById("btn-download-typ");
-const elBtnSave = document.getElementById("btn-save");
-const elEditorContainer = document.getElementById("editor-container");
-const elVisualContainer = document.getElementById("visual-container");
-const elRawContainer = document.getElementById("raw-container");
-const elRawTextarea = document.getElementById("raw-textarea");
-const elErrorBanner = document.getElementById("error-banner");
-const elBtnTheme = document.getElementById("btn-theme");
-const elPdfFrame = document.getElementById("pdf-frame");
+const hasDoc = typeof document !== "undefined";
+const elFileSelect = hasDoc ? document.getElementById("file-select") : null;
+const elBtnUpload = hasDoc ? document.getElementById("btn-upload") : null;
+const elFileUpload = hasDoc ? document.getElementById("file-upload") : null;
+const elModeForm = hasDoc ? document.getElementById("mode-form") : null;
+const elModeRaw = hasDoc ? document.getElementById("mode-raw") : null;
+const elModePreview = hasDoc ? document.getElementById("mode-preview") : null;
+const elStatusPill = hasDoc ? document.getElementById("status-pill") : null;
+const elStatusText = hasDoc ? document.getElementById("status-text") : null;
+const elExportMenu = hasDoc ? document.getElementById("export-menu") : null;
+const elBtnExportToggle = hasDoc ? document.getElementById("btn-export-toggle") : null;
+const elBtnDownloadPdf = hasDoc ? document.getElementById("btn-download-pdf") : null;
+const elBtnDownloadTyp = hasDoc ? document.getElementById("btn-download-typ") : null;
+const elBtnSave = hasDoc ? document.getElementById("btn-save") : null;
+const elEditorContainer = hasDoc ? document.getElementById("editor-container") : null;
+const elVisualContainer = hasDoc ? document.getElementById("visual-container") : null;
+const elRawContainer = hasDoc ? document.getElementById("raw-container") : null;
+const elRawTextarea = hasDoc ? document.getElementById("raw-textarea") : null;
+const elErrorBanner = hasDoc ? document.getElementById("error-banner") : null;
+const elBtnTheme = hasDoc ? document.getElementById("btn-theme") : null;
+const elPdfFrame = hasDoc ? document.getElementById("pdf-frame") : null;
+const elMainWorkspace = hasDoc ? document.getElementById("main-workspace") : null;
+const elResizer = hasDoc ? document.getElementById("panel-resizer") : null;
+
+const DEFAULT_COVER_LETTER_PREAMBLE = `// Clean Professional Cover Letter Template
+
+#set page(
+  paper: "a4",
+  margin: (x: 2.0cm, top: 2.0cm, bottom: 2.0cm),
+)
+
+#set text(
+  font: ("Segoe UI", "Arial"),
+  size: 10.5pt,
+  fill: rgb("#111827"),
+  lang: "en",
+)
+
+#set par(justify: true, leading: 0.7em)`;
 
 function setDirty(isDirty, msg = "") {
   state.dirty = isDirty;
@@ -277,6 +296,25 @@ function serializeHeader(h) {
   return `// Header\n#align(center)[\n  #text(size: 16pt, weight: "bold")[${h.name}] \\\n  #v(0.5pt)\n  #text(size: 9.5pt, weight: "medium", fill: rgb("#374151"))[${h.title}] \\\n  #v(1.5pt)\n  #text(size: 8.2pt, fill: rgb("#4b5563"))[\n    ${contactLine}\n  ]\n]`;
 }
 
+function serializeCoverLetterHeader(h) {
+  const parts = [];
+  if (h.location) parts.push(h.location);
+  if (h.email) {
+    const cleanEmail = h.email.replace(/^\\@/, "").replace(/\\/g, "").trim();
+    const fullEmail = cleanEmail.includes("@") ? cleanEmail : `${cleanEmail}@gmail.com`;
+    const emailDisplay = fullEmail.replace(/@/g, "\\@");
+    parts.push(`#link("mailto:${fullEmail}")[${emailDisplay}]`);
+  }
+  if (h.phone) parts.push(h.phone);
+  if (h.linkedinUrl) parts.push(`#link("${h.linkedinUrl}")[${h.linkedinLabel || "LinkedIn"}]`);
+  if (h.githubUrl) parts.push(`#link("${h.githubUrl}")[${h.githubLabel || "GitHub"}]`);
+  if (h.portfolioUrl) parts.push(`#link("${h.portfolioUrl}")[${h.portfolioLabel || "Portfolio"}]`);
+
+  const contactLine = parts.join(" | \n  ");
+
+  return `// Header\n#text(size: 20pt, weight: "bold")[${h.name}] \\\n#v(2pt)\n#text(size: 12pt, fill: rgb("#374151"))[${h.title}] \\\n#v(4pt)\n#text(size: 9pt, fill: rgb("#4b5563"))[\n  ${contactLine}\n]\n\n#v(8pt)\n#line(length: 100%, stroke: 0.8pt + rgb("#e5e7eb"))\n#v(12pt)`;
+}
+
 // =========================================================================
 // Education & Certifications Parsers & Serializers
 // =========================================================================
@@ -473,11 +511,20 @@ function serializeSkillsGrid(rows) {
 // =========================================================================
 // Document Parser & Serializer Orchestration
 // =========================================================================
-function detectDocType(typ) {
-  if (typ.includes("#let exp-entry") || typ.includes('#section-title(')) {
+function detectDocType(typ, filename = "") {
+  const fn = (filename || state.filename || "").toLowerCase();
+  const lower = (typ || "").toLowerCase();
+
+  if (typ.includes("#let exp-entry") || typ.includes('#section-title(') || fn.includes("resume")) {
     return "resume";
   }
-  if (typ.includes("Dear ") && typ.includes("Sincerely")) {
+  if (
+    fn.includes("letter") ||
+    fn.includes("cover") ||
+    lower.includes("cover letter") ||
+    lower.includes("dear ") ||
+    (lower.includes("hiring team") && (lower.includes("sincerely") || lower.includes("regards")))
+  ) {
     return "cover-letter";
   }
   return "generic";
@@ -635,62 +682,158 @@ function serializeResume(parsed) {
 
 // Cover Letter Parser & Serializer
 function parseCoverLetter(typ) {
-  const dearMatch = typ.match(/\r?\n(Dear [^\r\n]+)\r?\n/);
-  const sincerelyMatch = typ.match(/\r?\n(#v\(\d+pt\)\r?\n)?Sincerely,/);
-  if (!dearMatch || !sincerelyMatch) {
+  // 1. Identify Salutation (Dear ..., To ...)
+  const salutationMatch = typ.match(/(?:^|\r?\n)((?:Dear|To)\s+[^\r\n]+)(?:\r?\n|$)/i);
+  // 2. Identify Closing / Valediction (Sincerely, Best Regards, Warm Regards, etc.)
+  const valedictionMatch = typ.match(/(?:^|\r?\n)(?:#v\([^)]*\)\s*(?:\r?\n)?)?(Sincerely|Best Regards|Warm Regards|Kind Regards|Regards|Respectfully|Best|Warmly)(?:,\s*|\\|\r?\n)/i);
+
+  if (!salutationMatch) {
     return { kind: "generic", raw: typ };
   }
 
-  const preSalutation = typ.slice(0, dearMatch.index).trimEnd();
-  const salutation = dearMatch[1].trim();
-  const bodyStart = dearMatch.index + dearMatch[0].length;
-  const bodyEnd = sincerelyMatch.index;
-  const rawBody = typ.slice(bodyStart, bodyEnd).trim();
-  const postBody = typ.slice(sincerelyMatch.index).trim();
+  const salutation = salutationMatch[1].trim();
+  const salutationIdx = salutationMatch.index + (salutationMatch[0].startsWith("\n") || salutationMatch[0].startsWith("\r") ? 1 : 0);
+  const preSalutation = typ.slice(0, salutationIdx).trimEnd();
 
+  const bodyStart = salutationMatch.index + salutationMatch[0].length;
+  let bodyEnd = typ.length;
+  let valediction = "Sincerely,";
+  let signerName = "";
+
+  if (valedictionMatch) {
+    bodyEnd = valedictionMatch.index;
+    valediction = valedictionMatch[1].trim();
+    if (!valediction.endsWith(",")) valediction += ",";
+
+    const afterValediction = typ.slice(valedictionMatch.index + valedictionMatch[0].length).trim();
+    const nameMatch = afterValediction.match(/(?:^|\r?\n)(?:#v\([^)]*\)\s*(?:\r?\n)?)?(?:\*([^*]+)\*|([A-Za-z\s\.\-]{3,}))/);
+    if (nameMatch) {
+      signerName = (nameMatch[1] || nameMatch[2] || "").replace(/\\/g, "").trim();
+    }
+  }
+
+  const rawBody = typ.slice(bodyStart, bodyEnd).trim();
   const paragraphs = rawBody
-    .split(/(?:\r?\n)+\s*#v\(\d+pt\)\s*(?:\r?\n)+|(?:\r?\n){2,}/)
+    .split(/(?:\r?\n)+\s*#v\(\d+(?:\.\d+)?pt\)\s*(?:\r?\n)+|(?:\r?\n){2,}/)
     .map(p => p.trim())
     .filter(Boolean);
 
-  let topHeader = preSalutation;
+  let topSection = preSalutation;
   let dateStr = "";
+  let recipientLines = [];
   let recipientBlock = "";
   const dateMarker = "// Date & Recipient";
   const dmIdx = preSalutation.indexOf(dateMarker);
+
   if (dmIdx !== -1) {
-    topHeader = preSalutation.slice(0, dmIdx).trimEnd();
+    topSection = preSalutation.slice(0, dmIdx).trimEnd();
     const afterDate = preSalutation.slice(dmIdx + dateMarker.length).trim();
     const vParts = afterDate.split(/#v\(\d+(?:\.\d+)?pt\)/);
     dateStr = (vParts[0] || "").trim();
-    recipientBlock = (vParts.slice(1).join("\n\n") || "").trim();
+    recipientBlock = (vParts.slice(1).join("\n") || "").trim();
+  } else {
+    const dateM = preSalutation.match(/(?:^|\r?\n)((?:[A-Za-z]+\s+\d{1,2},\s+\d{4})|(?:\d{4}-\d{2}-\d{2}))(?:\r?\n)/);
+    if (dateM) {
+      dateStr = dateM[1].trim();
+      const afterD = preSalutation.slice(dateM.index + dateM[0].length);
+      recipientBlock = afterD.replace(/#v\([^)]*\)/g, "").trim();
+      topSection = preSalutation.slice(0, dateM.index).trimEnd();
+    }
   }
 
-  const header = parseResumeHeader(topHeader);
+  if (recipientBlock) {
+    recipientLines = recipientBlock
+      .split(/\r?\n/)
+      .map(line => {
+        let clean = line.trim();
+        while (clean.endsWith("\\") || clean.endsWith("*")) clean = clean.slice(0, -1).trim();
+        while (clean.startsWith("*")) clean = clean.slice(1).trim();
+        return clean;
+      })
+      .filter(Boolean);
+  }
+
+  // Separate style preamble and header block from topSection
+  let stylePreamble = "";
+  let headerBlock = topSection;
+  const headerMarker = "// Header";
+  const hmIdx = topSection.indexOf(headerMarker);
+  if (hmIdx !== -1) {
+    stylePreamble = topSection.slice(0, hmIdx).trim();
+    headerBlock = topSection.slice(hmIdx).trim();
+  } else {
+    const firstHeaderCall = topSection.search(/#(?:align|text)\(/);
+    if (firstHeaderCall !== -1) {
+      stylePreamble = topSection.slice(0, firstHeaderCall).trim();
+      headerBlock = topSection.slice(firstHeaderCall).trim();
+    }
+  }
+
+  // Ensure stylePreamble has required Typst page and font settings
+  if (!stylePreamble.includes("#set page") || !stylePreamble.includes("#set text")) {
+    stylePreamble = DEFAULT_COVER_LETTER_PREAMBLE;
+  }
+
+  const header = parseResumeHeader(headerBlock);
+  if (!signerName && header && header.name) {
+    signerName = header.name;
+  }
 
   return {
     kind: "cover-letter",
-    topHeader,
+    stylePreamble,
+    headerBlock,
     header,
-    hasDateMarker: dmIdx !== -1,
+    hasDateMarker: dmIdx !== -1 || Boolean(dateStr),
     dateStr,
     recipientBlock,
+    recipientLines,
     salutation,
     paragraphs,
-    postBody
+    valediction,
+    signerName
   };
 }
 
 function serializeCoverLetter(parsed) {
-  let pre = parsed.topHeader;
+  const preamble = (parsed.stylePreamble && parsed.stylePreamble.includes("#set page"))
+    ? parsed.stylePreamble
+    : DEFAULT_COVER_LETTER_PREAMBLE;
+
+  let headerTyp = "";
   if (parsed.header && parsed.header.name) {
-    pre = serializeHeader(parsed.header);
+    headerTyp = serializeCoverLetterHeader(parsed.header);
+  } else {
+    headerTyp = parsed.headerBlock || "";
   }
-  if (parsed.hasDateMarker) {
-    pre += `\n\n// Date & Recipient\n${parsed.dateStr}\n\n#v(8pt)\n${parsed.recipientBlock}\n\n#v(14pt)`;
+
+  // Format Recipient block
+  let recipientTyp = "";
+  if (parsed.recipientLines && parsed.recipientLines.length > 0) {
+    recipientTyp = parsed.recipientLines.map((line, idx) => {
+      const clean = line.trim();
+      if (!clean) return "";
+      if (idx === 0) {
+        return `*${clean}* \\`;
+      }
+      return `${clean} \\`;
+    }).filter(Boolean).join("\n").replace(/\\\s*$/, "");
+  } else if (parsed.recipientBlock) {
+    recipientTyp = parsed.recipientBlock;
   }
-  const bodyJoined = parsed.paragraphs.join("\n\n#v(10pt)\n");
-  return `${pre}\n\n${parsed.salutation}\n\n${bodyJoined}\n\n${parsed.postBody}\n`;
+
+  const dateBlock = parsed.dateStr
+    ? `// Date & Recipient\n${parsed.dateStr}\n\n#v(8pt)\n${recipientTyp}\n\n#v(14pt)`
+    : (recipientTyp ? `// Date & Recipient\n#v(8pt)\n${recipientTyp}\n\n#v(14pt)` : "");
+
+  const salutation = parsed.salutation || "Dear Hiring Team,";
+  const bodyJoined = (parsed.paragraphs || []).join("\n\n#v(10pt)\n");
+
+  const valediction = parsed.valediction || "Sincerely,";
+  const signer = parsed.signerName || (parsed.header ? parsed.header.name : "");
+  const closingBlock = `#v(16pt)\n${valediction} \\\n#v(14pt)\n*${signer}*`;
+
+  return `${preamble}\n\n${headerTyp}\n\n${dateBlock ? dateBlock + "\n\n" : ""}${salutation}\n\n${bodyJoined}\n\n${closingBlock}\n`;
 }
 
 // =========================================================================
@@ -712,14 +855,22 @@ function syncVisualToRaw() {
 function renderVisualEditor() {
   try {
     elVisualContainer.innerHTML = "";
-    const docType = detectDocType(state.rawTypst);
+    const docType = detectDocType(state.rawTypst, state.filename);
 
     if (docType === "resume") {
       state.parsed = parseResume(state.rawTypst);
-      renderResumeForm(state.parsed);
+      if (state.parsed.kind === "generic") {
+        renderGenericForm(state.parsed);
+      } else {
+        renderResumeForm(state.parsed);
+      }
     } else if (docType === "cover-letter") {
       state.parsed = parseCoverLetter(state.rawTypst);
-      renderCoverLetterForm(state.parsed);
+      if (state.parsed.kind === "generic") {
+        renderGenericForm(state.parsed);
+      } else {
+        renderCoverLetterForm(state.parsed);
+      }
     } else {
       state.parsed = { kind: "generic", raw: state.rawTypst };
       renderGenericForm(state.parsed);
@@ -1234,14 +1385,18 @@ function renderCoverLetterForm(parsed) {
     elVisualContainer.appendChild(secContact);
   }
 
-  if (parsed.hasDateMarker) {
+  if (parsed.hasDateMarker || parsed.dateStr || (parsed.recipientLines && parsed.recipientLines.length > 0)) {
     const secMeta = document.createElement("details");
     secMeta.className = "sec";
     secMeta.open = true;
     secMeta.innerHTML = `<summary><span class="summary-left">Date &amp; Recipient</span>${SVG_CHEVRON}</summary><div class="sec-body"></div>`;
     const mBody = secMeta.querySelector(".sec-body");
     mBody.appendChild(createField("Letter Date", parsed.dateStr, v => parsed.dateStr = v));
-    mBody.appendChild(createField("Recipient Address Block", parsed.recipientBlock, v => parsed.recipientBlock = v, true));
+
+    const recValue = (parsed.recipientLines || []).join("\n");
+    mBody.appendChild(createField("Recipient Address Block", recValue, v => {
+      parsed.recipientLines = v.split("\n").map(l => l.trim()).filter(Boolean);
+    }, true));
     elVisualContainer.appendChild(secMeta);
   }
 
@@ -1258,7 +1413,7 @@ function renderCoverLetterForm(parsed) {
   secBody.innerHTML = `<summary><span class="summary-left">Body Paragraphs</span>${SVG_CHEVRON}</summary><div class="sec-body"></div>`;
   const bBody = secBody.querySelector(".sec-body");
 
-  parsed.paragraphs.forEach((pText, pIdx) => {
+  (parsed.paragraphs || []).forEach((pText, pIdx) => {
     const card = document.createElement("div");
     card.className = "entity-card";
     const eh = document.createElement("div");
@@ -1293,6 +1448,7 @@ function renderCoverLetterForm(parsed) {
   addPBtn.className = "btn add-btn";
   addPBtn.innerHTML = `${SVG_PLUS}<span>Add paragraph</span>`;
   addPBtn.onclick = () => {
+    if (!parsed.paragraphs) parsed.paragraphs = [];
     parsed.paragraphs.push("New paragraph text.");
     syncVisualToRaw();
     renderVisualEditor();
@@ -1304,7 +1460,12 @@ function renderCoverLetterForm(parsed) {
   secClosing.className = "sec";
   secClosing.open = true;
   secClosing.innerHTML = `<summary><span class="summary-left">Sign-off &amp; Signature</span>${SVG_CHEVRON}</summary><div class="sec-body"></div>`;
-  secClosing.querySelector(".sec-body").appendChild(createField("Closing Block", parsed.postBody, v => parsed.postBody = v, true));
+  const clBody = secClosing.querySelector(".sec-body");
+  const clGrid = document.createElement("div");
+  clGrid.className = "grid-2";
+  clGrid.appendChild(createField("Valediction / Sign-off", parsed.valediction || "Sincerely,", v => parsed.valediction = v));
+  clGrid.appendChild(createField("Signer Name", parsed.signerName || (parsed.header ? parsed.header.name : ""), v => parsed.signerName = v));
+  clBody.appendChild(clGrid);
   elVisualContainer.appendChild(secClosing);
 }
 
@@ -1354,6 +1515,7 @@ function setMode(mode) {
   }
 
   if (isRaw) {
+    syncVisualToRaw();
     elRawTextarea.value = state.rawTypst;
   } else if (mode === "form") {
     state.rawTypst = elRawTextarea.value;
@@ -1361,6 +1523,7 @@ function setMode(mode) {
   }
 }
 
+if (hasDoc) {
 elModeForm.addEventListener("click", () => setMode("form"));
 elModeRaw.addEventListener("click", () => setMode("raw"));
 if (elModePreview) {
@@ -1374,8 +1537,6 @@ elRawTextarea.addEventListener("input", () => {
 // =========================================================================
 // Panel Resizer (Split-Pane Slider)
 // =========================================================================
-const elResizer = document.getElementById("panel-resizer");
-const elMainWorkspace = document.getElementById("main-workspace");
 let isDraggingResizer = false;
 
 function setEditorWidth(newWidth) {
@@ -1621,7 +1782,9 @@ async function loadFile(filePath) {
     state.rawTypst = data.content;
     state.pdfPath = data.pdfPath;
     state.pdfUrl = data.pdfUrl;
-    elPdfFrame.src = data.pdfUrl;
+    if (elPdfFrame) elPdfFrame.src = data.pdfUrl;
+
+    if (elRawTextarea) elRawTextarea.value = data.content;
 
     renderVisualEditor();
     setDirty(false, "All changes saved");
@@ -1684,5 +1847,22 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Initialization
-loadFileList();
+if (typeof window !== "undefined" && typeof fetch !== "undefined") {
+  loadFileList();
+}
+}
 
+
+
+// Universal CommonJS export for testing
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    detectDocType,
+    parseResume,
+    serializeResume,
+    parseCoverLetter,
+    serializeCoverLetter,
+    serializeCoverLetterHeader,
+    DEFAULT_COVER_LETTER_PREAMBLE
+  };
+}
