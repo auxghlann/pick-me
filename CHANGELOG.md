@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.1] - 2026-10-27
+
+### Fixed
+- **Cover Letter Compile & Styling Drift (Issue #7)**: Preserved `#set page`, `#set text`, `#set par`, and document preamble during serialization in Pick Me Studio to prevent font and dimension reset to US Letter and default serif typography.
+- **Multi-Sign-off Recognition**: Broadened cover letter parser to recognize diverse valedictions (`Sincerely,`, `Best Regards,`, `Respectfully,`, etc.), preventing unwarranted fallback to raw mode.
+- **Form Input Sanitization**: Cleaned raw Typst formatting (`*...*`, trailing `\`, `#v(16pt)`) from recipient address and sign-off form fields.
+- **Header Email Formatting**: Formatted candidate email to display the exact full address with escaped at-symbol (`khestermesa\@gmail.com`) rather than shortening to `@username`.
+- **Studio Multi-File State Desync**: Synchronized textarea state during file loading and visual mode switches to eliminate stale document bleeding across file selections.
+
+### Changed
+- **Directives Compression**: Rewrote `rules/AGENTS.md` following `concise-skill-builder` principles, reducing line count by 36% while preserving all scoring weights, entity isolation, and review gates.
+- **Local Verification Suite**: Added local gitignored Playwright E2E suite (`tests/e2e/studio.e2e.js`) and unit test suite (`tests/test-cover-letter.js`) under `tests/`.
+
 ## [v1.3.0] - 2026-10-22
 
 ### Added
