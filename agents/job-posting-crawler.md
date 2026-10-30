@@ -5,6 +5,9 @@ tools:
   - search_web
   - read_url_content
   - run_command
+  - read_file
+  - write_file
+  - edit_file
   - write_to_file
   - replace_file_content
   - view_file
@@ -134,13 +137,13 @@ Rank and display opportunities ordered by total Rubric Score and `preferences.lo
 
 ---
 
-## PDF Export Protocol (`typst-pdf`)
+## PDF Export Protocol (Typst)
 
 When requested to export crawl findings to PDF (e.g., "export these jobs to PDF" or "generate crawl digest"):
 1. Populate `templates/crawl-report/job-leads-digest.typ` with the structured job cards including freshness dates, score breakdowns, evidence, gaps, and clickable `#link("URL")[Apply Directly]` links. Ensure parent folder `$HOME/Documents/pick-me-output/crawls/` exists.
-2. Compile via PowerShell using `skills/typst-pdf/scripts/compile.ps1`:
+2. Compile via PowerShell using `scripts/compile.ps1`:
    ```powershell
-   powershell -ExecutionPolicy Bypass -File "skills/typst-pdf/scripts/compile.ps1" -TypstFile "$HOME/Documents/pick-me-output/crawls/job_leads_<YYYY-MM-DD>.typ" -OutputFile "$HOME/Documents/pick-me-output/crawls/job_leads_<YYYY-MM-DD>.pdf"
+   powershell -ExecutionPolicy Bypass -File "scripts/compile.ps1" -TypstFile "$HOME/Documents/pick-me-output/crawls/job_leads_<YYYY-MM-DD>.typ" -OutputFile "$HOME/Documents/pick-me-output/crawls/job_leads_<YYYY-MM-DD>.pdf"
    ```
 3. Confirm the exported file path to the user.
 

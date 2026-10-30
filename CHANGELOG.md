@@ -5,13 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.0] - 2026-10-30
+
+### Security & Hardening
+- **Path Traversal Guards (`scripts/studio.ps1`)**: Added `Test-AllowedStudioPath` restricting file loading and PDF serving strictly to allowed output directories (`~/Documents/pick-me-output/`), scratch directories, and read-only template folders.
+- **Origin Header Validation**: Enforced strict loopback Origin checks (`127.0.0.1` and `localhost`) to block cross-origin requests from arbitrary browser contexts.
+- **DOM XSS Elimination (`templates/studio/editor.js`)**: Replaced unsafe `innerHTML` interpolation of user-supplied section titles and card headers with safe DOM text node assignment (`.textContent`).
+
+### Added
+- **Visual Section Reordering**: Added Move Up and Move Down controls in section headers with boundary checks to reorder resume sections visually.
+- **Page Count Status Indicator**: Displayed compiled PDF page count directly in the Studio status bar upon file load and compilation.
+- **Unified Application Package Protocol**: Codified unified package protocol in `resume-builder` and `cover-letter-builder` to share sequential application IDs and review plans across combined requests.
+- **Automatic Output Relocation Guard (`scripts/compile.ps1`)**: Automatically relocates repository-staged `.typ` files to `~/Documents/pick-me-output/applications/<AppFolder>/` before compiling.
+
+### Fixed
+- **Resume Macro Rendering Drift**: Upgraded truncated `#let exp-entry` and `#let project-entry` macro bodies in `normalizeStylePreamble` so company location and project dates render visibly in compiled PDFs.
+- **Typst Array Spread Syntax**: Emitted trailing commas for single-bullet tuples `([bullet],)` so Typst `..bullets` spread syntax compiles cleanly.
+
+### Refactored & Removed
+- **Frontend Modularization & Deduplication**: Extracted pure AST parsing into `templates/studio/parser.js` and visual DOM generation into `templates/studio/editor.js`, reducing repetitive card building by 176 lines via `createEntityCard`.
+- **Typst PDF Skill Consolidation**: Removed redundant `skills/typst-pdf/` wrapper skill and dead `scripts/compile-typst.ps1` script in favor of top-level `scripts/compile.ps1` and `rules/AGENTS.md`.
+- **Subagent Tool Alignment**: Added `read_file`, `write_file`, and `edit_file` to `agents/job-posting-crawler.md` tools manifest.
+
 ## [v1.3.1] - 2026-10-27
 
 ### Fixed
 - **Cover Letter Compile & Styling Drift (Issue #7)**: Preserved `#set page`, `#set text`, `#set par`, and document preamble during serialization in Pick Me Studio to prevent font and dimension reset to US Letter and default serif typography.
 - **Multi-Sign-off Recognition**: Broadened cover letter parser to recognize diverse valedictions (`Sincerely,`, `Best Regards,`, `Respectfully,`, etc.), preventing unwarranted fallback to raw mode.
 - **Form Input Sanitization**: Cleaned raw Typst formatting (`*...*`, trailing `\`, `#v(16pt)`) from recipient address and sign-off form fields.
-- **Header Email Formatting**: Formatted candidate email to display the exact full address with escaped at-symbol (`khestermesa\@gmail.com`) rather than shortening to `@username`.
+- **Header Email Formatting**: Formatted candidate email to display the exact full address with escaped at-symbol (`alex.rivera\@example.com`) rather than shortening to `@username`.
 - **Studio Multi-File State Desync**: Synchronized textarea state during file loading and visual mode switches to eliminate stale document bleeding across file selections.
 
 ### Changed

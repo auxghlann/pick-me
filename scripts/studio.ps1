@@ -49,6 +49,63 @@ if (-not (Test-PathSafe $ScratchDir)) {
     New-Item -ItemType Directory -Path $ScratchDir -Force | Out-Null
 }
 
+$InitialFileResolved = ""
+if ($File -and (Test-PathSafe $File)) {
+    $InitialFileResolved = (Resolve-Path $File).Path
+}
+
+function Test-AllowedStudioPath {
+    param(
+        [string]$CandidatePath,
+        [bool]$AllowTemplates = $false,
+        [string]$RequireExtension = ""
+    )
+    if (-not $CandidatePath) { return $false }
+    try {
+        $FullCandidate = [System.IO.Path]::GetFullPath($CandidatePath)
+        if ($RequireExtension -and (-not $FullCandidate.EndsWith($RequireExtension, [System.StringComparison]::OrdinalIgnoreCase))) {
+            return $false
+        }
+        $AllowedRoots = @(
+            ([System.IO.Path]::GetFullPath($OutputRoot).TrimEnd('\') + '\'),
+            ([System.IO.Path]::GetFullPath($ScratchDir).TrimEnd('\') + '\')
+        )
+        if ($AllowTemplates) {
+            $AllowedRoots += ([System.IO.Path]::GetFullPath((Join-Path $RepoRoot "templates")).TrimEnd('\') + '\')
+        }
+        if ($InitialFileResolved) {
+            $InitDir = Split-Path -Parent $InitialFileResolved
+            if ($InitDir) {
+                $AllowedRoots += ([System.IO.Path]::GetFullPath($InitDir).TrimEnd('\') + '\')
+            }
+        }
+        foreach ($Root in $AllowedRoots) {
+            if ($FullCandidate.StartsWith($Root, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $true
+            }
+        }
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+function Get-PdfPageCount {
+    param([string]$PdfPath)
+    if (-not $PdfPath -or (-not (Test-PathSafe $PdfPath))) { return 0 }
+    try {
+        $RawBytes = [System.IO.File]::ReadAllBytes($PdfPath)
+        $Ascii = [System.Text.Encoding]::ASCII.GetString($RawBytes)
+        $PageMatches = [regex]::Matches($Ascii, '/Type\s*/Page\b')
+        if ($PageMatches.Count -gt 0) { return $PageMatches.Count }
+        return 1
+    }
+    catch {
+        return 0
+    }
+}
+
 # Locate Typst CLI
 $TypstCmd = ""
 $TypstFoundCmd = Get-Command "typst" -ErrorAction SilentlyContinue
@@ -164,13 +221,42 @@ function Send-JsonHttp {
     )
     $Json = $Payload | ConvertTo-Json -Depth 10 -Compress
     $Bytes = [System.Text.Encoding]::UTF8.GetBytes($Json)
-    $StatusText = if ($StatusCode -eq 200) { "OK" } elseif ($StatusCode -eq 404) { "Not Found" } else { "Internal Server Error" }
+    $StatusText = switch ($StatusCode) {
+        200 { "OK" }
+        403 { "Forbidden" }
+        404 { "Not Found" }
+        default { "Internal Server Error" }
+    }
     Send-HttpResponse -Stream $Stream -StatusCode $StatusCode -StatusText $StatusText -ContentType "application/json; charset=utf-8" -BodyBytes $Bytes
 }
 
-$InitialFileResolved = ""
-if ($File -and (Test-PathSafe $File)) {
-    $InitialFileResolved = (Resolve-Path $File).Path
+$PreviewTokens = [ordered]@{
+    "EXPERIENCE_BLOCK_PLACEHOLDER"     = '#exp-entry(title: "Software Engineer", company: "Example Corp", location: "Remote", date: "2025 -- Present", bullets: ([Delivered core features and verified system reliability.],))'
+    "PROJECTS_BLOCK_PLACEHOLDER"       = '#project-entry(name: "Sample Project", stack: "Python, SQL, dbt", date: "2026", bullets: ([Built modular ELT pipeline and automated schema tests.],))'
+    "EDUCATION_BLOCK_PLACEHOLDER"      = '#block(width: 100%, breakable: false)[#grid(columns: (1fr, auto), text(weight: "bold")[Bachelor of Science in Computer Science] + text(fill: rgb("#4b5563"))[ --- State University], text(fill: rgb("#4b5563"), size: 8.3pt)[2022 -- 2026]) #v(-2.5pt) #text(size: 7.8pt, fill: rgb("#6b7280"), style: "italic")[Manila, Philippines] #v(0.5pt) #list(marker: [•], spacing: 2.2pt, [Cum Laude])]'
+    "CERTIFICATIONS_BLOCK_PLACEHOLDER" = '#grid(columns: (1fr, 1fr), column-gutter: 8pt, row-gutter: 4pt, [• *Associate Data Engineer in SQL* --- DataCamp (2026)], [• *Associate Python Developer* --- DataCamp (2025)])'
+    "NAME_PLACEHOLDER"                 = "Alex Rivera"
+    "TITLE_PLACEHOLDER"                = "Software Engineer"
+    "LOCATION_PLACEHOLDER"             = "Metro Manila, Philippines"
+    "EMAIL_PLACEHOLDER"                = "alex.rivera@example.com"
+    "EMAIL_DISPLAY_PLACEHOLDER"        = "alex.rivera\@example.com"
+    "PHONE_PLACEHOLDER"                = "+63 900 000 0000"
+    "LINKEDIN_URL_PLACEHOLDER"         = "https://linkedin.com/in/example"
+    "GITHUB_URL_PLACEHOLDER"           = "https://github.com/example"
+    "SUMMARY_PLACEHOLDER"              = "Software engineer focused on backend services, data pipelines, and automated system verification."
+    "SKILLS_BLOCK_PLACEHOLDER"         = "[*Languages:*], [Python, SQL, TypeScript],`n  [*Frameworks & Libraries:*], [FastAPI, Playwright, React],`n  [*Tools & Platforms:*], [Git, Docker, Linux, PowerShell],`n  [*Core Methodologies:*], [System Integration Testing (SIT), Automated Testing, CI/CD],"
+    "CANDIDATE_NAME"                   = "Alex Rivera"
+    "CANDIDATE_TITLE"                  = "Software Engineer"
+    "CANDIDATE_LOCATION"               = "Metro Manila, Philippines"
+    "CANDIDATE_EMAIL_DISPLAY"          = "alex.rivera\@example.com"
+    "CANDIDATE_EMAIL"                  = "alex.rivera@example.com"
+    "CANDIDATE_PHONE"                  = "+63 900 000 0000"
+    "CANDIDATE_LINKEDIN"               = "https://linkedin.com/in/example"
+    "CANDIDATE_GITHUB"                 = "https://github.com/example"
+    "DATE_PLACEHOLDER"                 = "October 27, 2026"
+    "COMPANY_NAME"                     = "Example Corp"
+    "COMPANY_LOCATION"                 = "Metro Manila"
+    "BODY_PARAGRAPHS_PLACEHOLDER"      = "I am writing to apply for the Software Engineer position at Example Corp.`n`n#v(10pt)`nIn my recent work, I built modular backend services and automated verification pipelines.`n`n#v(10pt)`nThank you for your time and consideration."
 }
 
 $TcpListener = $null
@@ -253,9 +339,13 @@ try {
             $Query = Parse-QueryString -Query $QueryStr
 
             $ContentLength = 0
+            $OriginHeader = ""
             foreach ($Line in $Lines) {
                 if ($Line -match '^Content-Length:\s*(\d+)') {
                     $ContentLength = [int]$Matches[1]
+                }
+                elseif ($Line -match '^Origin:\s*(.+)$') {
+                    $OriginHeader = $Matches[1].Trim()
                 }
             }
 
@@ -309,8 +399,6 @@ try {
                 $FileList = @()
                 $SearchDirs = @()
                 if (Test-PathSafe $OutputRoot) { $SearchDirs += $OutputRoot }
-                $LocalOutput = Join-Path $RepoRoot "output"
-                if (Test-PathSafe $LocalOutput) { $SearchDirs += $LocalOutput }
 
                 foreach ($Dir in $SearchDirs) {
                     $Found = Get-ChildItem -Path $Dir -Filter "*.typ" -Recurse -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending
@@ -360,6 +448,12 @@ try {
                         error = "File not found: $TargetPath"
                     }
                 }
+                elseif (-not (Test-AllowedStudioPath -CandidatePath $TargetPath -AllowTemplates $true -RequireExtension ".typ")) {
+                    Send-JsonHttp -Stream $Stream -StatusCode 403 -Payload @{
+                        ok = $false
+                        error = "Access denied: path outside allowed Studio directories."
+                    }
+                }
                 else {
                     $Resolved = (Resolve-Path $TargetPath).Path
                     $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -370,23 +464,10 @@ try {
                     if ($IsTemplate) {
                         $PdfPath = Join-Path $ScratchDir ([System.IO.Path]::ChangeExtension($FileName, ".pdf"))
                         $ScratchTyp = Join-Path $ScratchDir $FileName
-                        $PreviewContent = $Content.Replace("EXPERIENCE_BLOCK_PLACEHOLDER", '#exp-entry(title: "Software Engineer", company: "Example Corp", location: "Remote", date: "2025 -- Present", bullets: ([Delivered core features and verified system reliability.],))')
-                        $PreviewContent = $PreviewContent.Replace("PROJECTS_BLOCK_PLACEHOLDER", '#project-entry(name: "Sample Project", stack: "Python, SQL, dbt", date: "2026", bullets: ([Built modular ELT pipeline and automated schema tests.],))')
-                        $PreviewContent = $PreviewContent.Replace("EDUCATION_BLOCK_PLACEHOLDER", '#block(width: 100%, breakable: false)[#grid(columns: (1fr, auto), text(weight: "bold")[Bachelor of Science in Computer Science] + text(fill: rgb("#4b5563"))[ --- University of Saint Louis Tuguegarao], text(fill: rgb("#4b5563"), size: 8.3pt)[2022 -- 2026]) #v(-2.5pt) #text(size: 7.8pt, fill: rgb("#6b7280"), style: "italic")[Philippines] #v(0.5pt) #list(marker: [•], spacing: 2.2pt, [GWA: 94.42% (Cum Laude)])]')
-                        $PreviewContent = $PreviewContent.Replace("CERTIFICATIONS_BLOCK_PLACEHOLDER", '#grid(columns: (1fr, 1fr), column-gutter: 8pt, row-gutter: 4pt, [• *Associate Data Engineer in SQL* --- DataCamp (2026)], [• *Associate Python Developer* --- DataCamp (2025)])')
-                        $PreviewContent = $PreviewContent.Replace("NAME_PLACEHOLDER", "Allan Khester M. Mesa")
-                        $PreviewContent = $PreviewContent.Replace("TITLE_PLACEHOLDER", "Software Engineer")
-                        $PreviewContent = $PreviewContent.Replace("LOCATION_PLACEHOLDER", "Tuguegarao City, Philippines")
-                        $PreviewContent = $PreviewContent.Replace("EMAIL_PLACEHOLDER", "allankhestermesa@gmail.com")
-                        $PreviewContent = $PreviewContent.Replace("EMAIL_DISPLAY_PLACEHOLDER", "\@allankhestermesa")
-                        $PreviewContent = $PreviewContent.Replace("PHONE_PLACEHOLDER", "+63 927 964 7378")
-                        $PreviewContent = $PreviewContent.Replace("LINKEDIN_URL_PLACEHOLDER", "https://linkedin.com/in/ak-mesa")
-                        $PreviewContent = $PreviewContent.Replace("GITHUB_URL_PLACEHOLDER", "https://github.com/ak-mesa")
-                        $PreviewContent = $PreviewContent.Replace("SUMMARY_PLACEHOLDER", "Detail-oriented software engineer with proven experience in full-stack engineering and automated testing.")
-                        $PreviewContent = $PreviewContent.Replace("LANGUAGES_PLACEHOLDER", "Python, SQL, TypeScript")
-                        $PreviewContent = $PreviewContent.Replace("FRAMEWORKS_PLACEHOLDER", "FastAPI, Playwright, React")
-                        $PreviewContent = $PreviewContent.Replace("TOOLS_PLACEHOLDER", "Git, Docker, Linux, PowerShell")
-                        $PreviewContent = $PreviewContent.Replace("METHODOLOGIES_PLACEHOLDER", "CI/CD, System Integration Testing (SIT), Agile")
+                        $PreviewContent = $Content
+                        foreach ($Token in $PreviewTokens.Keys) {
+                            $PreviewContent = $PreviewContent.Replace($Token, $PreviewTokens[$Token])
+                        }
                         [System.IO.File]::WriteAllText($ScratchTyp, $PreviewContent, $Utf8NoBom)
                         $CompResult = Invoke-TypstCompile -TypPath $ScratchTyp -PdfPath $PdfPath
                     }
@@ -404,15 +485,24 @@ try {
                         ok = $true
                         path = if ($IsTemplate) { "" } else { $Resolved }
                         filename = $FileName
-                        content = $Content
+                        content = if ($IsTemplate) { $PreviewContent } else { $Content }
                         compileOk = $CompResult.ok
                         compileError = $CompResult.error
                         pdfPath = $PdfPath
                         pdfUrl = "/api/pdf?path=$EncodedPdf&t=$Stamp"
+                        pageCount = (Get-PdfPageCount -PdfPath $PdfPath)
                     }
                 }
             }
             elseif ($Path -eq "/api/compile" -and $Method -eq "POST") {
+                if ($OriginHeader -and ($OriginHeader -notmatch '^https?://(127\.0\.0\.1|localhost)(:\d+)?$')) {
+                    Send-JsonHttp -Stream $Stream -StatusCode 403 -Payload @{
+                        ok = $false
+                        error = "Cross-origin requests are forbidden."
+                    }
+                    continue
+                }
+
                 $BodyRaw = [System.Text.Encoding]::UTF8.GetString($BodyBytes)
                 $Body = $BodyRaw | ConvertFrom-Json
 
@@ -425,8 +515,21 @@ try {
 
                 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
-                if ($TargetPath -and (Test-PathSafe (Split-Path -Parent $TargetPath))) {
-                    $TypToWrite = $TargetPath
+                if ($TargetPath) {
+                    if (-not (Test-AllowedStudioPath -CandidatePath $TargetPath -AllowTemplates $false -RequireExtension ".typ")) {
+                        Send-JsonHttp -Stream $Stream -StatusCode 403 -Payload @{
+                            ok = $false
+                            error = "Access denied: cannot write outside allowed Studio output directories."
+                        }
+                        continue
+                    }
+                    if (Test-PathSafe (Split-Path -Parent $TargetPath)) {
+                        $TypToWrite = [System.IO.Path]::GetFullPath($TargetPath)
+                    }
+                    else {
+                        $SafeName = [System.IO.Path]::GetFileName($FileName)
+                        $TypToWrite = Join-Path $ScratchDir $SafeName
+                    }
                 }
                 else {
                     $SafeName = [System.IO.Path]::GetFileName($FileName)
@@ -448,6 +551,7 @@ try {
                     filename = [System.IO.Path]::GetFileName($TypToWrite)
                     pdfPath = $PdfToWrite
                     pdfUrl = "/api/pdf?path=$EncodedPdf&t=$Stamp"
+                    pageCount = (Get-PdfPageCount -PdfPath $PdfToWrite)
                 }
             }
             elseif ($Path -eq "/api/pdf") {
@@ -455,6 +559,9 @@ try {
                 $Download = $Query["download"]
                 if (-not $PdfPath -or (-not (Test-PathSafe $PdfPath))) {
                     Send-HttpResponse -Stream $Stream -StatusCode 404 -StatusText "Not Found"
+                }
+                elseif (-not (Test-AllowedStudioPath -CandidatePath $PdfPath -AllowTemplates $false -RequireExtension ".pdf")) {
+                    Send-HttpResponse -Stream $Stream -StatusCode 403 -StatusText "Forbidden"
                 }
                 else {
                     $ResolvedPdf = (Resolve-Path $PdfPath).Path
@@ -494,4 +601,3 @@ finally {
         try { $TcpListener.Stop() } catch {}
     }
 }
-

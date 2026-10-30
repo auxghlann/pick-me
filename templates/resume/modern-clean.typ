@@ -92,10 +92,7 @@ SUMMARY_PLACEHOLDER
   columns: (auto, 1fr),
   column-gutter: 8pt,
   row-gutter: 3pt,
-  [*Languages:*], [LANGUAGES_PLACEHOLDER],
-  [*Frameworks & Libraries:*], [FRAMEWORKS_PLACEHOLDER],
-  [*Tools & Platforms:*], [TOOLS_PLACEHOLDER],
-  [*Core Methodologies:*], [METHODOLOGIES_PLACEHOLDER],
+  SKILLS_BLOCK_PLACEHOLDER
 )
 
 // Professional Experience
