@@ -20,7 +20,6 @@ Desktop.ini
 .idea/
 
 # Internal assistant guidelines
-rules/agents.md
 AGENTS.md
 
 # Local test artifacts and E2E suites

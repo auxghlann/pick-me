@@ -1,6 +1,6 @@
 # Pick Me.
 
-An Antigravity plugin for job application asisstance that compiles ATS-compliant Typst resumes, writes targeted cover letters, crawls job postings,  prepares STAR interview answers, and tracks application pipelines in CSV.
+An Antigravity plugin for job application assistance that compiles ATS-compliant Typst resumes, writes targeted cover letters, crawls job postings, prepares STAR interview answers, and tracks application pipelines in CSV.
 
 All generated documents are compiled to PDF and stored in `~/Documents/pick-me-output/` for clean organization.
 
@@ -15,7 +15,7 @@ All generated documents are compiled to PDF and stored in `~/Documents/pick-me-o
 | **`application-tracker`** | Inline Skill | Manages application lifecycles and follow-up schedules in RFC 4180 CSV (`data/applications.csv`). |
 | **`well-being-coach`** | Inline Skill | Guides sustainable pacing (2–3 tailored applications per day) and de-personalizes automated rejections. |
 | **`get-to-know-me`** | Inline Skill | Onboards candidates via existing resume import or a 4-phase conversational interview to populate profile facts and STAR stories. |
-| **`typst-pdf`** | Inline Skill | Compiles `.typ` source files into PDFs via PowerShell. |
+
 
 ## Prerequisites
 
@@ -65,7 +65,7 @@ Prompt Antigravity with a target job description:
 Tailor my resume for this role: [paste JD]
 ```
 
-`resume-builder` will draft a plan artifact with inline source attribution tags (`[Source: ... | Domain: ...]`), request your approval, and compile the resume to `~/Documents/pick-me-output/applications/<app_id>_<company>/resume_<company>.pdf`.
+`resume-builder` will draft a plan artifact with inline source attribution tags (`[Source: ... | Domain: ...]`), request your approval, and compile the resume via `scripts/compile.ps1` to `~/Documents/pick-me-output/applications/<app_id>_<company>/resume_<company>.pdf`.
 
 ### 3. Draft a Cover Letter
 Prompt Antigravity:
@@ -74,7 +74,7 @@ Prompt Antigravity:
 Draft a cover letter for this job: [paste JD]
 ```
 
-`cover-letter-builder` drafts a 3-paragraph letter (140–220 words) with an entity attribution audit, awaits approval, and compiles to `~/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf`.
+`cover-letter-builder` drafts a 3-paragraph letter (140–220 words) with an entity attribution audit, awaits approval, and compiles via `scripts/compile.ps1` to `~/Documents/pick-me-output/applications/<app_id>_<company>/cover_letter_<company>.pdf`.
 
 ### 4. Edit Visually in Pick Me Studio (Zero Tokens)
 To make quick wording or layout edits to any generated resume or cover letter without spending LLM tokens, launch the local split-screen editor:
@@ -83,7 +83,7 @@ To make quick wording or layout edits to any generated resume or cover letter wi
 .\scripts\studio.ps1
 ```
 
-This opens `http://127.0.0.1:8765/` in your browser where you can select any `.typ` file from `~/Documents/pick-me-output/`, upload a `.typ` file from disk, edit fields in the **Visual Form** (or switch to **Raw `.typ`**), and press `Ctrl+S` to recompile and export the PDF via Typst.
+This opens `http://127.0.0.1:8765/` in your browser where you can select any `.typ` file from `~/Documents/pick-me-output/`, upload a `.typ` file from disk, dynamically add or remove sections in the **Visual Form** (or switch to **Raw `.typ`**), and press `Ctrl+S` to recompile and export the PDF via Typst.
 
 ### 5. Search & Verify Opportunities
 Launch the crawler subagent:
